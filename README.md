@@ -1,7 +1,7 @@
 # facility_counting
 A quick &amp; dirty web app for real time counting the in &amp; outs in a facility, as well as the real time occupation of the different zones
 
-- is to be used as a Google Sheet App (the Google sheet is the database)
+- is to be used as a Google Sheet App (the Google sheet is the database) -- the code is in Tools > Script Editor
 - Sheet1 contains the current values at the appropriate places
 - Log_A to Log_E log each operation (+1, -1, 0)
 

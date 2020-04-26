@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<script       src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <head>
+    <base target="_top">
+    <script type="text/javascript">
+     var N = {'D5':0, 'D13':0, 'H5':0, 'H6':0, 'H7':0, 'H8':0};
+     
+     $( document ). ready(function()
+     { 
+     
+       function dt()
+       {
+         var d = new Date();
+         return ("0" + d.getDate()).slice(-2) + "/" + ("0"+(d.getMonth()+1)).slice(-2) + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+       }
+       
+       function update_H_tot()
+       {
+         var n = N['H5']+N['H6']+N['H7']+N['H8'];
+         $('#Htot').text(n);
+         $('#Htot2').text(n);
+       }
+       
+       function update_P_tot()
+       {
+         $('#Ptot').text(N['D5']-N['D13']);
+       }
+       
+       function compute_effective()
+       {
+         google.script.run.withSuccessHandler(function(e){  
+         google.script.run.withSuccessHandler(function(f){$('#S_I5').text(e+f)}).cell_get('D8')
+         }).cell_get('D7')
+       
+        google.script.run.withSuccessHandler(function(e){
+         $('#S_I6').text(e[0][0])
+         $('#S_I7').text(e[1][0])
+         $('#S_I8').text(e[2][0])
+         }).cells_get('D10:D12')
+         
+         google.script.run.withSuccessHandler(function(e){$('#S_H5').text(e)}).count_effective('zone1')
+         google.script.run.withSuccessHandler(function(e){$('#S_H6').text(e)}).count_effective('zone2')
+         google.script.run.withSuccessHandler(function(e){$('#S_H7').text(e)}).count_effective('zone3')
+         google.script.run.withSuccessHandler(function(e){$('#S_H8').text(e)}).count_effective('zone4')
+         
+         google.script.run.withSuccessHandler(function(e){$('#S_I9').text(e)}).cell_get('E14')
+       
+         $('#dt_effective_computed').text(dt())
+       }
+             
+       function getValues()
+       {         
+         google.script.run.withSuccessHandler(function(e){
+         $('#D5').text(e[0][0]); N['D5'] = e[0][0];
+         $('#D6').text(e[1][0])
+         $('#D7').text(e[2][0])
+         $('#D8').text(e[3][0])
+         $('#D9').text(e[4][0])
+         $('#D10').text(e[5][0])
+         $('#D11').text(e[6][0])
+         $('#D12').text(e[7][0])
+         $('#D13').text(e[8][0]); N['D13'] = e[8][0];
+         
+         update_P_tot() 
+         }).cells_get('D5:D13')
+       
+       google.script.run.withSuccessHandler(function(e){
+         $('#E7').text(e[0][0])
+         $('#E8').text(e[1][0])
+         $('#E10').text(e[3][0])
+         $('#E14').text(e[7][0])
+         }).cells_get('E7:E14')
+                        
+         google.script.run.withSuccessHandler(function(e){
+         $('#H5').text(e[0][0]); N['H5'] = e[0][0]; 
+         $('#H6').text(e[1][0]); N['H6'] = e[1][0]; 
+         $('#H7').text(e[2][0]); N['H7'] = e[2][0]; 
+         $('#H8').text(e[3][0]); N['H8'] = e[3][0]; 
+         
+         update_H_tot();
+         }).cells_get('H5:H8')
+       
+         google.script.run.withSuccessHandler(function(e){
+         $('#K5').text(e[0][0])
+         $('#K6').text(e[1][0])
+         $('#K7').text(e[2][0])
+         $('#K8').text(e[3][0])
+         $('#K9').text(e[4][0])
+         }).cells_get('K5:K9')
+         
+          google.script.run.withSuccessHandler(function(e){
+         $('#M5').text(e[0][0])
+         $('#M6').text(e[1][0])
+         $('#M7').text(e[2][0])
+         $('#M8').text(e[3][0])
+         }).cells_get('M5:M8')
+         
+          google.script.run.withSuccessHandler(function(e){
+         $('#I5').text(e[0][0])
+         $('#I6').text(e[1][0])
+         $('#I7').text(e[2][0])
+         $('#I8').text(e[3][0])
+         }).cells_get('I5:I8')
+         
+         google.script.run.withSuccessHandler(function(e){$('#I9').text(e)}).cell_get('E14')
+       
+         $('#dt_orientations').text(dt())
+         $('#dt_in').text(dt())
+         $('#dt_out').text(dt())
+         $('#dt_occupation').text(dt())
+         $('#dt_passages').text(dt())
+       
+       }
+       
+       getValues()
+       compute_effective()
+       
+       setInterval(getValues,         60000)
+       setInterval(compute_effective, 60000)
+       
+       var ids = ['A', 'B', 'C', 'D', 'E', 'F']
+       for (var m=0; m<ids.length; ++m)
+       {
+         var id = ids[m]
+         if (localStorage.getItem('div_'+id)==1) 
+         {
+           $('#triangle_'+id).text('△')
+           $('#div_'+id).show(); 
+         }
+         else 
+         {
+           $('#triangle_'+id).text('▽')
+           $('#div_'+id).hide();localStorage.setItem('div_' + id, 0)
+         }
+       }
+       
+       $('body').delegate('.toggle_div', 'click', function(e)
+       {
+         var id = e.currentTarget.attributes.whichdiv.value
+         $('#' + id).slideToggle()
+         
+         if (localStorage.getItem(id) == 0)         { localStorage.setItem(id, 1); $('#triangle_'+id.split('_')[1]).text('△');}
+         else if (localStorage.getItem(id) == 1)    { localStorage.setItem(id, 0); $('#triangle_'+id.split('_')[1]).text('▽');}
+         else                                       { localStorage.setItem(id, 1); $('#triangle_'+id.split('_')[1]).text('△');}
+       })
+       
+       $('body').delegate('.pm', 'click', function(e)
+       {
+          var op     = parseInt(e.currentTarget.attributes.op.value)
+          var attr   = e.currentTarget.parentElement.attributes
+          var cell   = attr.cell.value
+          var legend = attr.legend.value
+          var type   = attr.type.value
+          
+          $('#'+cell).text('⌛')
+          
+          google.script.run.withSuccessHandler(
+          function()
+          {
+             google.script.run.withSuccessHandler(
+             function(e){ $('#'+cell).text(e); N[cell] = e; update_H_tot(); update_P_tot();}
+             ).cell_get(cell)
+          }
+          ).cell_op(cell,op);
+          
+          google.script.run.log_set(type, legend, op)
+       })
+      })
+    </script>
+  </head>
+  <body style="font-size:250%; font-family:Helvetica; line-height:3em">
+  <style>
+  .va, .pm 
+  {
+      width:3em;
+  }
+  .vb 
+  {
+      font-weight:bold; 
+      text-align: right;
+  }
+  .pm 
+  {
+      text-align: center;
+      border: 2px solid #f0371a;
+      border-radius: 10px;
+  }
+  .pm:hover 
+  {
+      background:#f0371a33;
+  }
+
+  .dt 
+  {
+     font-size:smaller;
+     float:right;
+     padding-right:1em;
+  }
+  .toggle_div
+  {
+    border:        1px solid black;
+    padding:       10px;
+    border-radius: 5px;
+    background:    #f3f3f3;
+  }
+  td:first-child 
+  {
+    padding-left:.5em;
+  }
+  </style>
+   
+    <b>Entrées - sorties</b> :&nbsp;<span class="vb" id="Ptot"></span>&nbsp;/&nbsp;<span id="E14"></span>
+    <br>
+    
+    <b class='toggle_div' whichdiv='div_A' onclick="">Entrées <span id="triangle_A">▽</span></b><span class='dt' id='dt_in'></span>
+    <br>
+    <div id='div_A' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="D5"  type="A" legend="entree"><td>Entrées totales</td>      <td class="va vb" id="D5"></td><td></td><td class="va" id="E5"></td><td  onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D7"  type="A" legend="a"><td>a</td>          <td class="va vb" id="D7"></td><td>&nbsp;/</td><td class="va" id="E7"></td><td  onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D8"  type="A" legend="b"><td>b</td>          <td class="va vb" id="D8"></td><td>&nbsp;/</td><td class="va" id="E8"></td><td  onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D6"  type="A" legend="c"><td>c</td>                   <td class="va vb" id="D6"></td><td></td><td class="va" id="E6"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D9"  type="A" legend="d"><td>d</td>                 <td class="va vb" id="D9"></td><td></td><td class="va" id="E9"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D10" type="A" legend="e"><td>e</td>               <td class="va vb" id="D10"></td><td>&nbsp;/</td><td class="va" id="E10"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D11" type="A" legend="f"><td>f</td>                 <td class="va vb" id="D11"></td><td></td><td class="va" id="E11"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="D12" type="A" legend="g"><td>g</td>               <td class="va vb" id="D12"></td><td></td><td class="va" id="E12"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    </table>
+    </div>
+    
+    <b class='toggle_div' whichdiv='div_B' onclick="">B <span id="triangle_B">▽</span></b><span class='dt' id='dt_refus'></span>
+    <br>
+    <div id='div_B' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="M5"  type="B" legend="m"><td>m</td>                  <td class="va vb" id="M5"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="M6"  type="B" legend="n"><td>n</td>                <td class="va vb" id="M6"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="M7"  type="B" legend="o"><td>o</td>                  <td class="va vb" id="M7"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="M8"  type="B" legend="p"><td>p</td>                <td class="va vb" id="M8"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    </table>
+    </div>
+    
+    <b class='toggle_div' whichdiv='div_C onclick="">C <span id="triangle_C">▽</span></b><span class='dt' id='dt_orientations'></span>
+    <br>
+    <div id='div_C' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="K5" type="C" legend="s"><td>s</td>       <td class="va vb" id="K5"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="K6" type="C" legend="t"><td>t</td>         <td class="va vb" id="K6"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="K7" type="C" legend="u"><td>u</td>           <td class="va vb" id="K7"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="K8" type="C" legend="v"><td>v</td>     <td class="va vb" id="K8"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="K9" type="C" legend="w"><td>w</td>             <td class="va vb" id="K9"></td><td></td><td class="va"></td><td onclick="" class="pm" op=1>+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    </table>
+    </div>
+    
+    <b class='toggle_div' whichdiv='div_D' onclick="">Sorties <span id="triangle_D">▽</span></b><span class='dt' id='dt_out'></span>
+    <br>
+    <div id='div_D' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="D13" type="D" legend="sortie"><td>Sorties totales</td>              <td class="va vb" id="D13"></td><td></td><td class="va" id="E13"></td><td  onclick="" class="pm" op=1 >+</td><td onclick="" class="pm" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    </table>
+    </div>
+    
+    <b class='toggle_div' whichdiv='div_E' onclick="">Nombre de personnes présentes <span id="triangle_E">▽</span></b> <span class='dt' id='dt_occupation'></span>
+    <div id='div_E' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="H5" type="E" legend="m"><td>m</td>                 <td class="va vb" id="H5"></td><td>&nbsp;/</td><td class="va" id="I5"></td><td class="pm" onclick="" op=5 >+5</td><td class="pm" onclick="" op=-5 >-5</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="H6" type="E" legend="n"><td>n</td>               <td class="va vb" id="H6"></td><td>&nbsp;/</td><td class="va" id="I6"></td><td class="pm" onclick="" op=1 >+</td><td class="pm" onclick="" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="H7" type="E" legend="o"><td>o</td>                 <td class="va vb" id="H7"></td><td>&nbsp;/</td><td class="va" id="I7"></td><td class="pm" onclick="" op=1 >+</td><td class="pm" onclick="" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr cell="H8" type="E" legend="p"><td>p</td>               <td class="va vb" id="H8"></td><td>&nbsp;/</td><td class="va" id="I8"></td><td class="pm" onclick="" op=1 >+</td><td class="pm" onclick="" op=-1 >-</td><td class="pm" onclick="" op=0 >0</td></tr>
+    <tr          ><td>Total</td>                <td class="va vb" id="Htot"></td><td>&nbsp;/</td><td class="va" id="I9"></td><td></td><td></td><td></td></tr>
+    </table>
+    </div>
+    
+    <br>
+    <b  class='toggle_div' whichdiv='div_F' onclick="">Passages constatés <span id="triangle_F">▽</span></b> vs tickets <span class='dt' id="dt_effective_computed"></span>
+    <div id='div_F' style='width:100%; display:none'>
+    <table style="width:100%">
+    <tr cell="S_H5"><td>m</td>                <td class="va vb" id="S_H5"></td><td>&nbsp;/</td><td class="va" style="text-align:left" id="S_I5"></td></tr>
+    <tr cell="S_H6"><td>n</td>               <td class="va vb" id="S_H6"></td><td>&nbsp;/</td><td class="va" style="text-align:left" id="S_I6"></td></tr>
+    <tr cell="S_H7"><td>o</td>                <td class="va vb" id="S_H7"></td><td>&nbsp;/</td><td class="va" style="text-align:left" id="S_I7"></td></tr>
+    <tr cell="S_H8"><td>p</td>               <td class="va vb" id="S_H8"></td><td>&nbsp;/</td><td class="va" style="text-align:left" id="S_I8"></td></tr>
+    </table>
+    </div>
+     
+  </body>
+</html>

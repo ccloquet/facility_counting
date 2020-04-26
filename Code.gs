@@ -52,7 +52,7 @@ function count_effective(what)
 {
   
   var ss          = SpreadsheetApp.getActiveSpreadsheet()
-  var sheet       = ss.getSheetByName('Log_effectif');
+  var sheet       = ss.getSheetByName('Log_E');
   var rangeData   = sheet.getDataRange();
   var lastRow     = rangeData.getLastRow();
   var searchRange = sheet.getRange(1,1, lastRow, 3);
